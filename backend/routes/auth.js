@@ -15,7 +15,7 @@ router.post('/login', (req, res) => {
   if (!user || !bcrypt.compareSync(password, user.password_hash)) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
-  db.prepare('UPDATE users SET last_login = datetime("now") WHERE id = ?').run(user.id);
+  db.prepare("UPDATE users SET last_login = datetime('now') WHERE id = ?").run(user.id);
   const token = jwt.sign({ id: user.id, username: user.username, role: user.role, dept: user.department_id }, JWT_SECRET, { expiresIn: '7d' });
   const { password_hash, ...safeUser } = user;
   res.json({ token, user: safeUser });
