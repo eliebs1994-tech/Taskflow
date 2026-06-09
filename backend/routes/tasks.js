@@ -21,12 +21,12 @@ router.get('/', (req, res) => {
   if (dept) { query += ' AND t.department_id = ?'; params.push(dept); }
   if (status === 'open') { query += ' AND t.done = 0'; }
   else if (status === 'done') { query += ' AND t.done = 1'; }
-  else if (status === 'overdue') { query += ' AND t.done = 0 AND t.due_date < date("now")'; }
+  else if (status === 'overdue') { query += " AND t.done = 0 AND t.due_date < date('now')"; }
   if (priority) { query += ' AND t.priority = ?'; params.push(priority); }
   if (assignee) { query += ' AND t.assignee_id = ?'; params.push(assignee); }
   if (search) { query += ' AND (t.title LIKE ? OR t.description LIKE ?)'; params.push(`%${search}%`, `%${search}%`); }
   if (req.user.role === 'member') { query += ' AND (t.assignee_id = ? OR t.department_id = ?)'; params.push(req.user.id, req.user.dept); }
-  query += ' ORDER BY CASE t.priority WHEN "urgent" THEN 0 WHEN "high" THEN 1 WHEN "medium" THEN 2 ELSE 3 END, t.due_date ASC';
+  query += " ORDER BY CASE t.priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END, t.due_date ASC";
   res.json(db.prepare(query).all(...params));
 });
 
