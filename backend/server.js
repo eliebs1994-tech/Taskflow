@@ -22,7 +22,10 @@ const io = new Server(server, {
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../frontend/public')));
+const frontendPath = process.env.RAILWAY_ENVIRONMENT
+  ? path.join(__dirname, 'public')
+  : path.join(__dirname, '../frontend/public');
+app.use(express.static(frontendPath));
 
 initDB();
 
@@ -35,7 +38,10 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/comments', commentRoutes);
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/public/index.html'));
+  const indexPath = process.env.RAILWAY_ENVIRONMENT
+    ? path.join(__dirname, 'public', 'index.html')
+    : path.join(__dirname, '../frontend/public/index.html');
+  res.sendFile(indexPath);
 });
 
 io.on('connection', (socket) => {
