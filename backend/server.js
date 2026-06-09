@@ -12,16 +12,21 @@ const departmentRoutes = require('./routes/departments');
 const timeRoutes = require('./routes/time');
 const notificationRoutes = require('./routes/notifications');
 const commentRoutes = require('./routes/comments');
+const statusRoutes = require('./routes/statuses');
+const tagRoutes = require('./routes/tags');
+const activityRoutes = require('./routes/activity');
+const checklistRoutes = require('./routes/checklists');
+const attachmentRoutes = require('./routes/attachments');
+const customFieldRoutes = require('./routes/customfields');
 
 const app = express();
 const server = http.createServer(app);
-
-const io = new Server(server, {
-  cors: { origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE'] }
-});
+const io = new Server(server, { cors: { origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE'] } });
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
+
 const frontendPath = process.env.RAILWAY_ENVIRONMENT
   ? path.join(__dirname, 'public')
   : path.join(__dirname, '../frontend/public');
@@ -36,6 +41,12 @@ app.use('/api/departments', departmentRoutes);
 app.use('/api/time', timeRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/comments', commentRoutes);
+app.use('/api/statuses', statusRoutes);
+app.use('/api/tags', tagRoutes);
+app.use('/api/activity', activityRoutes);
+app.use('/api/checklists', checklistRoutes);
+app.use('/api/attachments', attachmentRoutes);
+app.use('/api/customfields', customFieldRoutes);
 
 app.get('*', (req, res) => {
   const indexPath = process.env.RAILWAY_ENVIRONMENT
@@ -47,17 +58,13 @@ app.get('*', (req, res) => {
 io.on('connection', (socket) => {
   socket.on('join', (userId) => socket.join(`user_${userId}`));
   socket.on('join_dept', (deptId) => socket.join(`dept_${deptId}`));
-
   socket.on('task_update', (data) => socket.broadcast.emit('task_updated', data));
   socket.on('task_create', (data) => socket.broadcast.emit('task_created', data));
   socket.on('task_delete', (data) => socket.broadcast.emit('task_deleted', data));
   socket.on('comment_add', (data) => socket.broadcast.emit('comment_added', data));
-  socket.on('notification', (data) => {
-    io.to(`user_${data.userId}`).emit('new_notification', data);
-  });
+  socket.on('notification', (data) => io.to(`user_${data.userId}`).emit('new_notification', data));
 });
 
 app.set('io', io);
-
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => console.log(`TaskFlow server running on port ${PORT}`));

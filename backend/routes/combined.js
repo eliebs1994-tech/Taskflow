@@ -134,6 +134,7 @@ commentRouter.post('/:taskId', (req, res) => {
   const db = getDB();
   const id = uuidv4();
   db.prepare('INSERT INTO comments (id, task_id, user_id, content) VALUES (?, ?, ?, ?)').run(id, req.params.taskId, req.user.id, content);
+  db.prepare('INSERT INTO activity (id, task_id, user_id, action, new_value) VALUES (?, ?, ?, ?, ?)').run(uuidv4(), req.params.taskId, req.user.id, 'commented', content);
   const comment = db.prepare('SELECT c.*, u.full_name, u.avatar_initials, u.avatar_color, u.avatar_text_color FROM comments c JOIN users u ON c.user_id = u.id WHERE c.id = ?').get(id);
   req.app.get('io').emit('comment_added', { taskId: req.params.taskId, comment });
   res.status(201).json(comment);
